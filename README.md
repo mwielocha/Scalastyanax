@@ -52,7 +52,7 @@ Column slice query:
       }
 ```
 
-Column slice dls query:
+Column slice dsl query:
 
 ```scala
   query <-? ("D") </? Seq("D", "A", "K") execute match {
