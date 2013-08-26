@@ -14,12 +14,8 @@ object ApplicationBuild extends Build {
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
     "com.netflix.astyanax" % "astyanax-thrift" % V.astyanax exclude("javax.servlet", "servlet-api"),
     "com.netflix.astyanax" % "astyanax-entity-mapper" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
-    "org.specs2" %% "specs2" % "1.11" % "test"
+    "org.specs2" %% "specs2" % "2.1.1" % "test"
   )
-
-
-  val testDependencies = Seq("org.specs2" %% "specs2" % "1.13" % "test")
-
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
     exportJars := true,
