@@ -66,7 +66,6 @@ Double slice query:
 ```scala
   query.slice(Seq("D", "A", "K")).slice(Seq("A", "D", "K")).execute match {
         case Success(rows) => rows.flatten.flatMap(_.as[String])
-        }
         case Failure(_) => _
       }
 ```
