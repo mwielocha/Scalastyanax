@@ -26,9 +26,11 @@ case class Row[K, C](astx: astxm.Row[K, C]) {
 }
 
 case class Columns[C](astx: astxm.ColumnList[C]) {
-  def stream: Stream[Column[C]] = astx.toStream.map(Column(_))
-}
 
+  def stream: Stream[Column[C]] = astx.toStream.map(Column(_))
+
+  def apply(name: C): Column[C] = Column(astx.getColumnByName(name))
+}
 
 case class Column[C](astx: astxm.Column[C]) {
 
@@ -38,6 +40,8 @@ case class Column[C](astx: astxm.Column[C]) {
       case notNull => Some(notNull)
     }
   }
+
+  def name: C = astx.getName
 
   def as[T](implicit m: Manifest[T]): Option[T] = {
     m.erasure match {
