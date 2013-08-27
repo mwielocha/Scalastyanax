@@ -109,5 +109,15 @@ class QuerySpec extends Specification {
         case Failure(_) => failure
       }
     }
+
+    "answer sliced (varargs) rows and columns question" in new CassandraWithQueryContext {
+
+      query.slice("D", "A", "K").slice("A", "D", "K").execute match {
+        case Success(rows) => rows.flatten.flatMap(_.as[String]) mustEqual {
+          scala.Range(0, 3).map(x => Seq("A", "D", "K")).toSeq.flatten
+        }
+        case Failure(_) => failure
+      }
+    }
   }
 }
