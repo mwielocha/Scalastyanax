@@ -4,6 +4,8 @@ import org.specs2.mutable.Specification
 import org.specs2._
 import Query._
 import scala.collection.JavaConversions._
+import com.netflix.astyanax.model.ConsistencyLevel
+import com.netflix.astyanax.retry.RunOnce
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,6 +21,8 @@ class QuerySpec extends Specification {
   class CassandraWithQueryContext extends Cassandra {
 
     implicit val queryContext = QueryContext(keyspace, columnFamily)
+      .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+      .withRetryPolicy(RunOnce.get())
 
   }
 

@@ -5,6 +5,14 @@ Astyanax scala wrapper.
 
 Usage:
 
+First define an implicit query context:
+
+```scala
+implicit val queryContext = QueryContext(keyspace, columnFamily)
+      .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+      .withRetryPolicy(RunOnce.get())
+```
+
 Simple one row, one column fetch:
 
 ```scala
