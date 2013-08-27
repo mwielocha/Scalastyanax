@@ -14,6 +14,8 @@ object ApplicationBuild extends Build {
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
     "com.netflix.astyanax" % "astyanax-thrift" % V.astyanax exclude("javax.servlet", "servlet-api"),
     "com.netflix.astyanax" % "astyanax-entity-mapper" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
+    /*"org.cassandraunit" % "cassandra-unit" % "1.1.1.2" % "test"
+      exclude("org.apache.cassandra", "cassandra-all") exclude("org.hectorclient", "hector-core"),*/
     "org.specs2" %% "specs2" % "2.1.1" % "test"
   )
 

@@ -16,8 +16,8 @@ import com.netflix.astyanax.{model => astxm}
 
 object Query {
 
-  def query[K, C](implicit ks: Keyspace, cf: ColumnFamily[K, C]): ColumnFamilyQuery[K, C] = {
-    ColumnFamilyQuery(ks.prepareQuery(cf))
+  def query[K, C](implicit context: QueryContext[K, C]): ColumnFamilyQuery[K, C] = {
+    context.prepareQuery
   }
 }
 
@@ -31,6 +31,10 @@ case class ColumnFamilyQuery[K, C](astx: astxq.ColumnFamilyQuery[K, C]) {
 
   def slice(keys: Iterable[K]): RowSliceQuery[K, C] = {
     RowSliceQuery(astx.getRowSlice(keys))
+  }
+
+  def slice(keys: K*): RowSliceQuery[K, C] = {
+    slice(keys.toIterable)
   }
 }
 
@@ -52,8 +56,12 @@ case class RowQuery[K, C](astx: astxq.RowQuery[K, C]) {
 
   def <~? (selector: Range[C]): RowQuery[K, C] = range(selector)
 
-  def slice(selector: Iterable[C]) = {
+  def slice(selector: Iterable[C]): RowQuery[K, C] = {
     RowQuery(astx.withColumnSlice(selector))
+  }
+
+  def slice(selector: C*): RowQuery[K, C] = {
+    slice(selector.toIterable)
   }
 
   def </? (selector: Iterable[C]): RowQuery[K, C] = slice(selector)
@@ -79,6 +87,10 @@ case class RowSliceQuery[K, C](astx: astxq.RowSliceQuery[K, C]) {
 
   def slice(selector: Iterable[C]): RowSliceQuery[K, C] = {
     RowSliceQuery(astx.withColumnSlice(selector))
+  }
+
+  def slice(selector: C*): RowSliceQuery[K, C] = {
+    slice(selector.toIterable)
   }
 
   def </? (selector: Iterable[C]): RowSliceQuery[K, C] = slice(selector)

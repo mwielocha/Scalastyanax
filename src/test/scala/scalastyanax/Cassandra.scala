@@ -13,6 +13,7 @@ import org.specs2.mutable.Around
 import org.specs2.execute.{AsResult, Result}
 import org.slf4j.LoggerFactory
 import com.google.common.collect.ImmutableMap
+import org.apache.cassandra.service.CassandraDaemon
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,6 +25,9 @@ import com.google.common.collect.ImmutableMap
 class Cassandra extends Scope {
 
   val logger = LoggerFactory.getLogger(getClass)
+
+//  val cassandraDeamon = new CassandraDaemon
+//  cassandraDeamon.start()
 
   val keyspaceName = "Scalastyanax_unit"
   val columnFamilyName = "Scalastyanax_unit_cf"

@@ -16,9 +16,15 @@ class QuerySpec extends Specification {
 
   sequential
 
+  class CassandraWithQueryContext extends Cassandra {
+
+    implicit val queryContext = QueryContext(keyspace, columnFamily)
+
+  }
+
   "Scalastyanax" should {
 
-    "answer simple row question" in new Cassandra {
+    "answer simple row question" in new CassandraWithQueryContext {
 
       query.one("D").one("D") match {
         case Success(c) => c.as[String] mustEqual Some("D")
@@ -26,7 +32,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer ranged column question" in new Cassandra {
+    "answer ranged column question" in new CassandraWithQueryContext {
 
       query.one("D").range(Range("D", 20)).execute match {
         case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual keys.dropWhile(_ != "D")
@@ -34,7 +40,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer reversed ranged column question" in new Cassandra {
+    "answer reversed ranged column question" in new CassandraWithQueryContext {
 
       query.one("D").range(Range("D", 20).reversed).execute match {
         case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual keys.reverse.dropWhile(_ != "D")
@@ -42,7 +48,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer ranged (builded) column question" in new Cassandra {
+    "answer ranged (builded) column question" in new CassandraWithQueryContext {
 
       query.one("D").range(Range.from("D").take(30)).execute match {
         case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual keys.dropWhile(_ != "D")
@@ -50,7 +56,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer ranged (builded with dsl) column question" in new Cassandra {
+    "answer ranged (builded with dsl) column question" in new CassandraWithQueryContext {
 
       query <-? "D" <~? Range.from("D").take(30) execute match {
         case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual keys.dropWhile(_ != "D")
@@ -58,7 +64,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer sliced column question" in new Cassandra {
+    "answer sliced column question" in new CassandraWithQueryContext {
 
       query.one("D").slice(Seq("D", "A", "K")).execute match {
         case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual Seq("A", "D", "K")
@@ -66,7 +72,15 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer (builded with dsl) sliced column question" in new Cassandra {
+    "answer sliced (varargs) column question" in new CassandraWithQueryContext {
+
+      query.one("D").slice("D", "A", "K").execute match {
+        case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual Seq("A", "D", "K")
+        case Failure(_) => failure
+      }
+    }
+
+    "answer (builded with dsl) sliced column question" in new CassandraWithQueryContext {
 
       query <-? ("D") </? Seq("D", "A", "K") execute match {
         case Success(columns) => columns.stream.flatMap(_.as[String]) mustEqual Seq("A", "D", "K")
@@ -74,7 +88,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer sliced rows question" in new Cassandra {
+    "answer sliced rows question" in new CassandraWithQueryContext {
 
       query.slice(Seq("D", "A", "K")).range(Range("D")).execute match {
         case Success(rows) => rows.flatten.flatMap(_.as[String]) mustEqual Seq("D", "D", "D")
@@ -82,7 +96,7 @@ class QuerySpec extends Specification {
       }
     }
 
-    "answer sliced rows and columns question" in new Cassandra {
+    "answer sliced rows and columns question" in new CassandraWithQueryContext {
 
       query.slice(Seq("D", "A", "K")).slice(Seq("A", "D", "K")).execute match {
         case Success(rows) => rows.flatten.flatMap(_.as[String]) mustEqual {
