@@ -43,7 +43,17 @@ case class Column[C](astx: astxm.Column[C]) {
 
   def name: C = astx.getName
 
-  def as[T](implicit m: Manifest[T]): Option[T] = {
+  /**
+   * Use value[T]
+   * @param m
+   * @tparam T
+   * @return
+   */
+
+  @Deprecated
+  def as[T](implicit m: Manifest[T]): Option[T] = value[T]
+
+  def value[T](implicit m: Manifest[T]): Option[T] = {
     m.erasure match {
       case clazz if(clazz == classOf[String]) => null2Option(astx.getStringValue.asInstanceOf[T])
       case clazz if(clazz == classOf[Long]) => null2Option(astx.getLongValue.asInstanceOf[T])

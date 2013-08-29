@@ -40,11 +40,11 @@ case class ColumnFamilyQuery[K, C](astx: astxq.ColumnFamilyQuery[K, C]) {
 
 case class RowQuery[K, C](astx: astxq.RowQuery[K, C]) {
 
-  def one(key: C) = {
+  def one(key: C): Execution[Column[C]] = {
     Execution.wrap(Column(astx.getColumn(key).execute().getResult))
   }
 
-  def <-? (key: C) = one(key)
+  def <-? (key: C): Execution[Column[C]] = one(key)
 
   def range(selector: Range[C]) = {
     RowQuery(astx.withColumnRange(
