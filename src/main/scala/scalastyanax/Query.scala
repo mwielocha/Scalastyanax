@@ -27,7 +27,7 @@ case class ColumnFamilyQuery[K, C](astx: astxq.ColumnFamilyQuery[K, C]) {
     RowQuery(astx.getRow(key))
   }
 
-  def <-? (key: K) = one(key)
+  def <-? (key: K): RowQuery[K, C] = one(key)
 
   def slice(keys: Iterable[K]): RowSliceQuery[K, C] = {
     RowSliceQuery(astx.getRowSlice(keys))
@@ -40,13 +40,13 @@ case class ColumnFamilyQuery[K, C](astx: astxq.ColumnFamilyQuery[K, C]) {
 
 case class RowQuery[K, C](astx: astxq.RowQuery[K, C]) {
 
-  def one(key: C) = {
+  def one(key: C): Execution[Column[C]] = {
     Execution.wrap(Column(astx.getColumn(key).execute().getResult))
   }
 
-  def <-? (key: C) = one(key)
+  def <-? (key: C): Execution[Column[C]] = one(key)
 
-  def range(selector: Range[C]) = {
+  def range(selector: Range[C]): RowQuery[K, C] = {
     RowQuery(astx.withColumnRange(
       selector.firstOrNull,
       selector.lastOrNull,
@@ -66,7 +66,7 @@ case class RowQuery[K, C](astx: astxq.RowQuery[K, C]) {
 
   def </? (selector: Iterable[C]): RowQuery[K, C] = slice(selector)
 
-  def execute = {
+  def execute: Execution[Columns[C]] = {
     Execution.wrap(Columns(astx.execute().getResult))
   }
 
@@ -95,7 +95,7 @@ case class RowSliceQuery[K, C](astx: astxq.RowSliceQuery[K, C]) {
 
   def </? (selector: Iterable[C]): RowSliceQuery[K, C] = slice(selector)
 
-  def execute = {
+  def execute: Execution[Rows[K, C]] = {
     Execution.wrap(Rows(astx.execute().getResult))
   }
 
