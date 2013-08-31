@@ -101,20 +101,3 @@ case class RowSliceQuery[K, C](astx: astxq.RowSliceQuery[K, C]) {
 
   def !!! = execute
 }
-
-trait Execution[R]
-
-case class Success[R](data: R) extends Execution[R]
-
-case class Failure[R](throwable: Throwable) extends Execution[R]
-
-object Execution {
-
-  def wrap[R](execution: => R): Execution[R] = {
-    try {
-      Success(execution)
-    } catch {
-      case throwable: Throwable => Failure(throwable)
-    }
-  }
-}
