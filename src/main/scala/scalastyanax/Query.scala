@@ -5,6 +5,7 @@ import com.netflix.astyanax.model.ColumnFamily
 import scala.collection.JavaConversions._
 import com.netflix.astyanax.{query => astxq}
 import com.netflix.astyanax.{model => astxm}
+import JavaInteropt._
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,8 +49,8 @@ case class RowQuery[K, C](astx: astxq.RowQuery[K, C]) {
 
   def range(selector: Range[C]): RowQuery[K, C] = {
     RowQuery(astx.withColumnRange(
-      selector.firstOrNull,
-      selector.lastOrNull,
+      selector.first.getOrElseNull,
+      selector.last.getOrElseNull,
       selector.reverse,
       selector.limit))
   }
@@ -77,8 +78,8 @@ case class RowSliceQuery[K, C](astx: astxq.RowSliceQuery[K, C]) {
 
   def range(selector: Range[C]): RowSliceQuery[K, C] = {
     RowSliceQuery(astx.withColumnRange(
-      selector.firstOrNull,
-      selector.lastOrNull,
+      selector.first.getOrElseNull,
+      selector.last.getOrElseNull,
       selector.reverse,
       selector.limit))
   }

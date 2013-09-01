@@ -9,10 +9,6 @@ package scalastyanax
  */
 case class Range[C](first: Option[C], last: Option[C] = None, limit: Int = 1, reverse: Boolean = false) {
 
-  def firstOrNull = first.getOrElse(null.asInstanceOf[C])
-
-  def lastOrNull = last.getOrElse(null.asInstanceOf[C])
-
   def from(from: C): Range[C] = copy(first = Some(from))
 
   def to(to: C): Range[C] = copy(last = Some(to))
