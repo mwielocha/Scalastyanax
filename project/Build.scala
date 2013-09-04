@@ -20,6 +20,7 @@ object ApplicationBuild extends Build {
   )
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
+    version := appVersion,
     exportJars := true,
     scalaVersion        := "2.10.2"
   )
