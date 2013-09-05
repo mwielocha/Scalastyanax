@@ -36,6 +36,15 @@ case class ColumnFamilyQuery[K, C](astx: astxq.ColumnFamilyQuery[K, C]) {
   def slice(keys: K*): RowSliceQuery[K, C] = {
     slice(keys.toIterable)
   }
+
+  def all = AllRowsQuery(astx.getAllRows)
+}
+
+case class AllRowsQuery[K, C](astx: astxq.AllRowsQuery[K, C]) {
+
+  def execute: Execution[Rows[K, C]] = {
+    Execution.wrap(Rows(astx.execute().getResult))
+  }
 }
 
 case class RowQuery[K, C](astx: astxq.RowQuery[K, C]) {
