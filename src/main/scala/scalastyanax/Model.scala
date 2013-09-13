@@ -59,6 +59,7 @@ case class Column[C](astx: astxm.Column[C]) {
       case clazz if(clazz == classOf[Long]) => null2Option(astx.getLongValue.asInstanceOf[T])
       case clazz if(clazz == classOf[Boolean]) => null2Option(astx.getBooleanValue.asInstanceOf[T])
       case clazz if(clazz == classOf[Int]) => null2Option(astx.getIntegerValue.asInstanceOf[T])
+      case clazz if(clazz == classOf[Nothing]) => None
     }
   }
 }
