@@ -7,7 +7,12 @@ case class Rows[K, C](astx: astxm.Rows[K, C]) {
 
   def apply(key: K): Row[K, C] = Row(astx.getRow(key))
 
-  def keys: Seq[K] = astx.getKeys.toSeq
+  def keys: Seq[K] = {
+    astx.getKeys match {
+      case null => Nil
+      case keys => keys.toSeq
+    }
+  }
 
   def flatten: Stream[Column[C]] = astx.iterator().toStream.flatMap(row => Columns(row.getColumns).stream)
 
