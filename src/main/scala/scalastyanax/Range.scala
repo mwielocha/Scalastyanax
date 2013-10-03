@@ -50,4 +50,8 @@ object Range {
   def from[C](from: C, limit: Int): Range[C] = {
     Range(from, limit)
   }
+
+  def limit[C](limit: Int): Range[C] = {
+    Range[C](None, None, limit)
+  }
 }
