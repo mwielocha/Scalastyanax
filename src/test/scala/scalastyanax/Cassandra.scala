@@ -85,12 +85,12 @@ class Cassandra extends Scope {
   val keys: Seq[String] = "A,B,C,D,E,F,G,H,I,J,K".split(",").toSeq
 
   keyspace.truncateColumnFamily(columnFamily)
-  val batch = keyspace.prepareMutationBatch()
-  keys.foreach(rowKey => {
-    keys.foreach(columnKey => {
-      batch.withRow(columnFamily, rowKey).putColumn(columnKey, columnKey)
-    })
-  })
+//  val batch = keyspace.prepareMutationBatch()
+//  keys.foreach(rowKey => {
+//    keys.foreach(columnKey => {
+//      batch.withRow(columnFamily, rowKey).putColumn(columnKey, columnKey)
+//    })
+//  })
 
-  batch.execute()
+//  batch.execute()
 }
