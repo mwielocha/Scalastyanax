@@ -26,7 +26,7 @@ trait ColumnFamilyEnhancers {
       path match {
         case ((rowKey, column), value) => {
           keyspace.prepareColumnMutation(columnFamily, rowKey, column)
-            .putValue(value, null.asInstanceOf[Int])
+            .putValue(value, null)
         }
       }
     }
@@ -35,7 +35,7 @@ trait ColumnFamilyEnhancers {
       path match {
         case ((rowKey, column), value) => {
           mutationBatch.withRow(columnFamily, rowKey)
-            .putColumn(column, value, null.asInstanceOf[Int])
+            .putColumn(column, value, null)
         }
       }
     }

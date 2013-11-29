@@ -4,6 +4,8 @@ import org.specs2.mutable.Specification
 import scalastyanax.Cassandra
 import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.model.ColumnList
+import scala.util.Failure
+import scala.util._
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,10 +26,21 @@ class RowQueryEnhancersSpec extends Specification {
 
       (columnFamily += ("RowQueryTestKey" -> "RowQueryTestColumn" -> "RowQueryTestValue")).execute
 
-      columnFamily("RowQueryTestKey").perform[String]({
-        case Right(result) => result.getResult
-        case Left(t) => t.getMessage
-      })
+      val batch = keyspace.mutate { implicit batch =>
+        columnFamily ++= ("Row" -> "Column" -> "Value")
+        columnFamily ++= ("Row 2" -> "Column 2" -> "Value 2")
+      }
+
+      keyspace.mutate(batch) { implicit batch =>
+        columnFamily ++= ("Row 3" -> "Column 3" -> "Value 3")
+        columnFamily ++= ("Row 4" -> "Column 4" -> "Value 4")
+      }.execute
+
+
+      columnFamily("RowQueryTestKey").get {
+        case Success(result) => result.
+        case Failure(t) =>
+      }
 
       1 === 1
     }

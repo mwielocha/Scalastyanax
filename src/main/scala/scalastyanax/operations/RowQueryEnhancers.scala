@@ -4,6 +4,7 @@ import com.netflix.astyanax.query.RowQuery
 import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.model.ColumnList
 import scalastyanax.common.ExecutorHelper
+import scala.util.Try
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,10 +20,6 @@ trait RowQueryEnhancers extends ExecutorHelper {
 
   implicit class EnhancedRowQuery[K, C](val rowQuery: RowQuery[K, C]) {
 
-    def perform[R](resultHandler: Either[Throwable, OperationResult[ColumnList[C]]] => R): R = {
-      resultHandler(wrap[OperationResult[ColumnList[C]]] { _ =>
-        rowQuery.execute()
-      })
-    }
+    def get: Try = Try(rowQuery.execute())
   }
 }
