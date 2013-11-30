@@ -1,6 +1,7 @@
 package scalastyanax.result
 
-import com.netflix.astyanax.model.ColumnList
+import com.netflix.astyanax.model.{Column, ColumnList}
+import scala.collection.JavaConversions._
 import reflect.runtime.universe._
 
 
@@ -25,8 +26,20 @@ trait ColumnListEnhancers {
       }
     }
 
+    private def wrapStringValue[T](column: Column[C]): Option[T] = {
+      Option(column.getStringValue().asInstanceOf[T])
+    }
+
     private def wrapStringValue[T](column: C): Option[T] = {
       Option(columnList.getStringValue(column, null).asInstanceOf[T])
+    }
+
+    def mapColumns[R](mapper: C => R): Iterable[R] = {
+      columnList.getColumnNames.map(mapper)
+    }
+
+    def mapValues[V, R](mapper: V => R): Iterable[R] = {
+      columnList.flatMap(column => wrapStringValue(column)).map(mapper)
     }
   }
 }
