@@ -20,6 +20,6 @@ trait RowQueryEnhancers extends ExecutorHelper {
 
   implicit class EnhancedRowQuery[K, C](val rowQuery: RowQuery[K, C]) {
 
-    def get: Try = Try(rowQuery.execute())
+    def get: Try[OperationResult[ColumnList[C]]] = Try(rowQuery.execute())
   }
 }

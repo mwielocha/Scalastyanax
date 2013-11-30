@@ -1,6 +1,7 @@
 package scalastyanax
 
 import scalastyanax.operations.{RowQueryEnhancers, ColumnFamilyEnhancers, KeyspaceEnhancers}
+import scalastyanax.result.ColumnListEnhancers
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,3 +13,4 @@ import scalastyanax.operations.{RowQueryEnhancers, ColumnFamilyEnhancers, Keyspa
 object Scalastyanax extends KeyspaceEnhancers
   with ColumnFamilyEnhancers
   with RowQueryEnhancers
+  with ColumnListEnhancers

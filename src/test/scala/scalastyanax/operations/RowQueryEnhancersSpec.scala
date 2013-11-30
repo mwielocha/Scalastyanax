@@ -37,12 +37,12 @@ class RowQueryEnhancersSpec extends Specification {
       }.execute
 
 
-      columnFamily("RowQueryTestKey").get {
-        case Success(result) => result.
-        case Failure(t) =>
+      val queryResult: Option[String] = columnFamily("RowQueryTestKey").get match {
+        case Success(result) => result.getResult()[String]("RowQueryTestColumn")
+        case Failure(t) => None
       }
 
-      1 === 1
+      queryResult === Some("RowQueryTestValue")
     }
   }
 }
