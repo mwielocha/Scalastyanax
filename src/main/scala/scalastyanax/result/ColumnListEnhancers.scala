@@ -18,15 +18,15 @@ trait ColumnListEnhancers {
 
   implicit class EnhancedColumnList[C](val columnList: ColumnList[C]) {
 
-    def apply[T : TypeTag](column: C, defaultValue: Option[T] = None): Option[T] = {
+    def apply[T : TypeTag](column: C): Option[T] = {
       typeOf[T] match {
-        case t if t =:= typeOf[String] => wrapStringValue(column, defaultValue)
+        case t if t =:= typeOf[String] => wrapStringValue(column)
           // TODO: more std type wrappers
       }
     }
 
-    private def wrapStringValue[T](column: C, defaultValue: Option[T]): Option[T] = {
-      Option(columnList.getStringValue(column, defaultValue.getOrElse(null).asInstanceOf[String]).asInstanceOf[T])
+    private def wrapStringValue[T](column: C): Option[T] = {
+      Option(columnList.getStringValue(column, null).asInstanceOf[T])
     }
   }
 }
