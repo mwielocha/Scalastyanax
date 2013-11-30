@@ -21,6 +21,7 @@ trait ColumnListEnhancers {
     def apply[T : TypeTag](column: C, defaultValue: Option[T] = None): Option[T] = {
       typeOf[T] match {
         case t if t =:= typeOf[String] => wrapStringValue(column, defaultValue)
+          // TODO: more std type wrappers
       }
     }
 
