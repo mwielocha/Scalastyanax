@@ -38,7 +38,7 @@ val queryResult: Option[Int] = columnFamily("RowQueryTestKey" -> "RowQueryTestCo
     case Failure(t) => None
 }
 
-//value mapping in a fly:
+//another on-the-fly value mapping
 
 val values: Iterable[Int] = columnFamily("Row").get match {
     case Success(result) => result.getResult.flatMapValues[String, Int](_.toInt)
