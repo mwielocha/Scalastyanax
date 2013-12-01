@@ -1,6 +1,6 @@
 package scalastyanax
 
-import org.specs2.specification.Scope
+import org.specs2.specification.{BeforeEach, Context, Apply, Scope}
 import com.netflix.astyanax.connectionpool.impl.{CountingConnectionPoolMonitor, ConnectionPoolConfigurationImpl}
 import com.netflix.astyanax.{Cluster, AstyanaxContext}
 import com.netflix.astyanax.impl.AstyanaxConfigurationImpl
@@ -9,7 +9,7 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory
 import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.serializers.StringSerializer
 import scala.collection.JavaConversions._
-import org.specs2.mutable.Around
+import org.specs2.mutable.{After, BeforeAfter, Before, Around}
 import org.specs2.execute.{AsResult, Result}
 import org.slf4j.LoggerFactory
 import com.google.common.collect.ImmutableMap
@@ -22,13 +22,13 @@ import org.apache.cassandra.service.CassandraDaemon
  * Time: 21:01
  * To change this template use File | Settings | File Templates.
  */
-class Cassandra extends Scope {
+object CassandraConnection {
 
-  val logger = LoggerFactory.getLogger(getClass)
+  lazy val defaultConnection = new CassandraConnection
 
-//  val cassandraDeamon = new CassandraDaemon
-//  cassandraDeamon.start()
+}
 
+class CassandraConnection {
   val keyspaceName = "Scalastyanax_unit"
   val columnFamilyName = "Scalastyanax_unit_cf"
 
@@ -66,31 +66,33 @@ class Cassandra extends Scope {
 
   val cluster: Cluster = cassandraContext.getClient
 
-  logger.info("Accessing keyspace {}", keyspaceName)
-  implicit val keyspace = cluster.getKeyspace(keyspaceName)
+  lazy val keyspace = cluster.getKeyspace(keyspaceName)
 
-  implicit val columnFamily = new ColumnFamily[String, String](
+  lazy val columnFamily = new ColumnFamily[String, String](
     columnFamilyName, // Column Family Name
     StringSerializer.get(), // Key Serializer
     StringSerializer.get(), // Column Serializer
     StringSerializer.get()) // Value Serializer
+}
 
-  if(keyspace.describeKeyspace().getColumnFamily(columnFamilyName) == null) {
-    keyspace.createColumnFamily(columnFamily, ImmutableMap.builder[String, Object]()
+class CassandraContext extends After {
+
+  val logger = LoggerFactory.getLogger(getClass)
+
+  import CassandraConnection._
+
+  if(defaultConnection.keyspace.describeKeyspace().getColumnFamily(defaultConnection.columnFamilyName) == null) {
+    defaultConnection.keyspace.createColumnFamily(columnFamily, ImmutableMap.builder[String, Object]()
       .put("default_validation_class", "UTF8Type")
       .put("key_validation_class",     "UTF8Type")
       .put("comparator_type",          "UTF8Type").build())
   }
 
-  val keys: Seq[String] = "A,B,C,D,E,F,G,H,I,J,K".split(",").toSeq
+  implicit val columnFamily = defaultConnection.columnFamily
+  implicit val keyspace = defaultConnection.keyspace
 
-  keyspace.truncateColumnFamily(columnFamily)
-  val batch = keyspace.prepareMutationBatch()
-  keys.foreach(rowKey => {
-    keys.foreach(columnKey => {
-      batch.withRow(columnFamily, rowKey).putColumn(columnKey, columnKey)
-    })
-  })
-
-  batch.execute()
+  def after: Any = {
+    logger.info("Clean up...")
+    keyspace.truncateColumnFamily(columnFamily)
+  }
 }
