@@ -25,6 +25,42 @@ class ScalastyanaxSpec extends Specification {
 
       (columnFamily += ("RowQueryTestKey" -> "RowQueryTestColumn" -> "RowQueryTestValue")).execute
 
+      val queryResult: Option[String] = columnFamily("RowQueryTestKey", "RowQueryTestColumn").get match {
+        case Success(result) => result.getResult.value[String]
+        case Failure(t) => None
+      }
+
+      queryResult === Some("RowQueryTestValue")
+    }
+
+    "perform a single value query using a path notation" in new CassandraContext {
+
+      (columnFamily += ("RowQueryTestKey" -> "RowQueryTestColumn" -> "RowQueryTestValue")).execute
+
+      val queryResult: Option[String] = columnFamily("RowQueryTestKey" -> "RowQueryTestColumn").get match {
+        case Success(result) => result.getResult.value[String]
+        case Failure(t) => None
+      }
+
+      queryResult === Some("RowQueryTestValue")
+    }
+
+    "perform a single value query with mapping using a path notation" in new CassandraContext {
+
+      (columnFamily += ("RowQueryTestKey" -> "RowQueryTestColumn" -> "12345")).execute
+
+      val queryResult: Option[Int] = columnFamily("RowQueryTestKey" -> "RowQueryTestColumn").get match {
+        case Success(result) => result.getResult.map[String, Int](_.toInt)
+        case Failure(t) => None
+      }
+
+      queryResult === Some(12345)
+    }
+
+    "perform a single row query" in new CassandraContext {
+
+      (columnFamily += ("RowQueryTestKey" -> "RowQueryTestColumn" -> "RowQueryTestValue")).execute
+
       val queryResult: Option[String] = columnFamily("RowQueryTestKey").get match {
         case Success(result) => result.getResult()[String]("RowQueryTestColumn")
         case Failure(t) => None

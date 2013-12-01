@@ -31,5 +31,9 @@ trait ColumnEnhancers {
         case otherwise => throw new IllegalStateException(s"Invalid column type: ${otherwise}")
       }
     }
+
+    def map[V : TypeTag, R](mapper: V => R): Option[R] = {
+      value[V].map(mapper)
+    }
   }
 }
