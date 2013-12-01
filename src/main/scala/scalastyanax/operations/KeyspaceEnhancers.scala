@@ -13,11 +13,11 @@ trait KeyspaceEnhancers {
 
   implicit class MutableKeyspace(val keyspace: Keyspace) {
 
-    def mutate(mutation: MutationBatch => Unit): MutationBatch = {
-      mutate(keyspace.prepareMutationBatch())(mutation)
+    def newMutationBatch(mutation: MutationBatch => Unit): MutationBatch = {
+      withMutationBatch(keyspace.prepareMutationBatch())(mutation)
     }
 
-    def mutate(mutationBatch: MutationBatch)(mutation: MutationBatch => Unit): MutationBatch = {
+    def withMutationBatch(mutationBatch: MutationBatch)(mutation: MutationBatch => Unit): MutationBatch = {
       mutation(mutationBatch)
       mutationBatch
     }
