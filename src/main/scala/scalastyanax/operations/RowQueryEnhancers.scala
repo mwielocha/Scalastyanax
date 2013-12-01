@@ -3,7 +3,6 @@ package scalastyanax.operations
 import com.netflix.astyanax.query.RowQuery
 import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.model.ColumnList
-import scalastyanax.common.ExecutorHelper
 import scala.util.Try
 
 /**
@@ -16,7 +15,7 @@ import scala.util.Try
 
 object RowQueryImplicits extends RowQueryEnhancers
 
-trait RowQueryEnhancers extends ExecutorHelper {
+trait RowQueryEnhancers {
 
   implicit class EnhancedRowQuery[K, C](val rowQuery: RowQuery[K, C]) {
 
