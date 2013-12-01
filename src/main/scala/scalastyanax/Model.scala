@@ -7,7 +7,12 @@ case class Rows[K, C](astx: astxm.Rows[K, C]) {
 
   def apply(key: K): Row[K, C] = Row(astx.getRow(key))
 
-  def keys: Seq[K] = astx.getKeys.toSeq
+  def keys: Seq[K] = {
+    astx.getKeys match {
+      case null => Nil
+      case keys => keys.toSeq
+    }
+  }
 
   def flatten: Stream[Column[C]] = astx.iterator().toStream.flatMap(row => Columns(row.getColumns).stream)
 
@@ -59,6 +64,8 @@ case class Column[C](astx: astxm.Column[C]) {
       case clazz if(clazz == classOf[Long]) => null2Option(astx.getLongValue.asInstanceOf[T])
       case clazz if(clazz == classOf[Boolean]) => null2Option(astx.getBooleanValue.asInstanceOf[T])
       case clazz if(clazz == classOf[Int]) => null2Option(astx.getIntegerValue.asInstanceOf[T])
+      case clazz if(clazz == classOf[Double]) => null2Option(astx.getDoubleValue.asInstanceOf[T])
+      case clazz if(clazz == classOf[Nothing]) => None
     }
   }
 }
