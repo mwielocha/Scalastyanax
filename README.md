@@ -24,6 +24,20 @@ val values = columnFamily("Row").get match {
     case Failure(t) => Nil
 }
 
+//even simpler one value query:
+
+val queryResult: Option[String] = columnFamily("RowQueryTestKey" -> "RowQueryTestColumn").get match {
+    case Success(result) => result.getResult.value[String]
+    case Failure(t) => None
+}
+
+//one value query with on-the-fly mapping:
+
+val queryResult: Option[Int] = columnFamily("RowQueryTestKey" -> "RowQueryTestColumn").get match {
+    case Success(result) => result.getResult.map[String, Int](_.toInt)
+    case Failure(t) => None
+}
+
 //value mapping in a fly:
 
 val values: Iterable[Int] = columnFamily("Row").get match {

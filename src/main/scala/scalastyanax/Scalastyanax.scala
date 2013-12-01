@@ -1,6 +1,6 @@
 package scalastyanax
 
-import scalastyanax.operations.{RowSliceQueryEnhancers, RowQueryEnhancers, ColumnFamilyEnhancers, KeyspaceEnhancers}
+import scalastyanax.operations._
 import scalastyanax.result.{RowsEnhancers, ColumnListEnhancers}
 
 /**
@@ -16,3 +16,4 @@ object Scalastyanax extends KeyspaceEnhancers
   with RowSliceQueryEnhancers
   with RowsEnhancers
   with RangeQueryBuilder
+  with ColumnQueryEnhancers
