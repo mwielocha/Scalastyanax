@@ -1,7 +1,7 @@
 package scalastyanax.operations
 
 import com.netflix.astyanax.model.{Row, Rows, ColumnFamily}
-import com.netflix.astyanax.{MutationBatch, Keyspace}
+import com.netflix.astyanax.{Execution, ColumnListMutation, MutationBatch, Keyspace}
 import com.netflix.astyanax.query.{RowSliceQuery, RowQuery, ColumnQuery}
 import scala.collection.JavaConversions._
 import com.netflix.astyanax.recipes.reader.AllRowsReader
@@ -20,12 +20,12 @@ trait ColumnFamilyEnhancers {
 
   implicit class MutableColumnFamily[K, C](val columnFamily: ColumnFamily[K, C]) {
 
-    def +=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace) = {
+    def +=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
       keyspace.prepareColumnMutation(columnFamily, rowKey, column)
         .putValue(value, ttl.getOrElse(null.asInstanceOf[Int]))
     }
 
-    def +=(path: ((K, C), String))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace) = {
+    def +=(path: ((K, C), String))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
       path match {
         case ((rowKey, column), value) => {
           keyspace.prepareColumnMutation(columnFamily, rowKey, column)
@@ -34,34 +34,34 @@ trait ColumnFamilyEnhancers {
       }
     }
 
-    def -=(rowKey: K, column: C)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace) = {
+    def -=(rowKey: K, column: C)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
       keyspace.prepareColumnMutation(columnFamily, rowKey, column)
         .deleteColumn()
     }
 
-    def -=(path: (K, C))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace) = {
+    def -=(path: (K, C))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
       path match {
         case (rowKey, column) => -=(rowKey, column)(keyspace)
       }
     }
 
-    def ++=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+    def ++=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
       mutationBatch.withRow(columnFamily, rowKey)
         .putColumn(column, value, ttl.getOrElse(null.asInstanceOf[Int]))
     }
 
-    def ++=(path: ((K, C), String))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+    def ++=(path: ((K, C), String))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
       path match {
         case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch)
       }
     }
 
-    def --=(rowKey: K, column: C)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+    def --=(rowKey: K, column: C)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
       mutationBatch.withRow(columnFamily, rowKey)
         .deleteColumn(column)
     }
 
-    def --=(path: (K, C))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+    def --=(path: (K, C))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
       path match {
         case (rowKey, column) => --=(rowKey, column)(mutationBatch)
       }
