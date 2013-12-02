@@ -34,18 +34,37 @@ trait ColumnFamilyEnhancers {
       }
     }
 
-    def ++=(path: ((K, C), String))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+    def -=(rowKey: K, column: C)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace) = {
+      keyspace.prepareColumnMutation(columnFamily, rowKey, column)
+        .deleteColumn()
+    }
+
+    def -=(path: (K, C))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace) = {
       path match {
-        case ((rowKey, column), value) => {
-          mutationBatch.withRow(columnFamily, rowKey)
-            .putColumn(column, value, null)
-        }
+        case (rowKey, column) => -=(rowKey, column)(keyspace)
       }
     }
 
     def ++=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
       mutationBatch.withRow(columnFamily, rowKey)
         .putColumn(column, value, ttl.getOrElse(null.asInstanceOf[Int]))
+    }
+
+    def ++=(path: ((K, C), String))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+      path match {
+        case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch)
+      }
+    }
+
+    def --=(rowKey: K, column: C)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+      mutationBatch.withRow(columnFamily, rowKey)
+        .deleteColumn(column)
+    }
+
+    def --=(path: (K, C))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch) = {
+      path match {
+        case (rowKey, column) => --=(rowKey, column)(mutationBatch)
+      }
     }
   }
 
