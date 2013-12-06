@@ -95,7 +95,7 @@ trait ColumnFamilyEnhancers {
 
     def apply(rowKey: K, column: C)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): ColumnQuery[C] = {
       keyspace.prepareQuery(columnFamily)
-        .getKey(rowKey)
+        .getRow(rowKey)
         .getColumn(column)
     }
 
@@ -262,6 +262,31 @@ trait ColumnFamilyEnhancers {
           function(input)
         }
       }
+    }
+  }
+
+  implicit class MainteinableColumnFamily[K, C](columnFamily: ColumnFamily[K, C]) {
+
+    /**
+     * Craete column family if one does not exist.
+     *
+     * @param properties
+     * @param keyspace
+     * @return
+     */
+
+    def create(properties: Map[String, AnyRef])(implicit keyspace: Keyspace): Boolean = {
+      keyspace.describeKeyspace().getColumnFamilyList.map(_.getName).contains(columnFamily.getName) match {
+        case true => false
+        case false => {
+          keyspace.createColumnFamily(columnFamily, properties)
+          true
+        }
+      }
+    }
+
+    def create(properties: (String, AnyRef)*)(implicit keyspace: Keyspace): Boolean = {
+      create(properties.toMap)(keyspace)
     }
   }
 }
