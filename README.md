@@ -17,6 +17,18 @@ lazy val columnFamily = new ColumnFamily[String, String](
     StringSerializer.get(), // Column Serializer
     StringSerializer.get()) // Value Serializer
 
+//create column family (if doesn't exist) with properties
+
+columnFamily.create(
+    "default_validation_class" -> "UTF8Type",
+    "key_validation_class"     -> "UTF8Type",
+    "comparator_type"          -> "UTF8Type"
+)
+
+//truncate
+
+columnFamily.truncate
+
 //simple row query:
 
 val values = columnFamily("Row").get match {
@@ -98,6 +110,34 @@ val batch = keyspace.newMutationBatch { implicit batch =>
 
 keyspace.withBatchMutation(batch) { implicit batch =>
   columnFamily ++= ("A new row in an old batch" -> "Column 1" -> "Value 1")
+}.execute
+
+```
+
+Counter columns:
+
+```
+
+val columnFamilyWithCounterColumns = new ColumnFamily[String, String](
+    columnFamilyWithCounterColumnsName, // Column Family Name
+    StringSerializer.get(), // Key Serializer
+    StringSerializer.get(), // Column Serializer
+    LongSerializer.get()) // Value Serializer
+
+columnFamilyWithCounterColumns.create(
+    "default_validation_class" -> "CounterColumnType",
+    "key_validation_class"     -> "UTF8Type",
+    "comparator_type"          -> "UTF8Type"
+)
+
+//increment:
+
+(columnFamilyWithCounterColumns ^= ("RowWithCounterColumn #1" -> "CounterColumn #1" -> 6)).execute
+
+//increment in a batch:
+
+keyspace.newMutationBatch { implicit batch =>
+    columnFamilyWithCounterColumns ^^= ("RowWithCounterColumn #2" -> "CounterColumn #2" -> 100)
 }.execute
 
 ```
