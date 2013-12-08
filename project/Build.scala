@@ -8,7 +8,7 @@ object ApplicationBuild extends Build {
   }
 
   val appName         = "Scalastyanax"
-  val appVersion      = "2.1.2-SNAPSHOT"
+  val appVersion      = "2.2.0-SNAPSHOT"
 
   val appDependencies =  Seq(
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/ % "provided",

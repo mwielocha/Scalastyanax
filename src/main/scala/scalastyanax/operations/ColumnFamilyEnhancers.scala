@@ -20,19 +20,48 @@ trait ColumnFamilyEnhancers {
 
   implicit class MutableColumnFamily[K, C](val columnFamily: ColumnFamily[K, C]) {
 
-    def +=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
-      keyspace.prepareColumnMutation(columnFamily, rowKey, column)
-        .putValue(value, ttl.getOrElse(null.asInstanceOf[Int]))
+    /**
+     * Put value
+     *
+     * @param rowKey
+     * @param column
+     * @param value
+     * @param ttl
+     * @param keyspace
+     * @param typeTagV
+     * @tparam V
+     * @return
+     */
+
+    def +=[V](rowKey: K, column: C, value: V, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagV: TypeTag[V]): Execution[Void] = {
+      val columnMutation =  keyspace.prepareColumnMutation(columnFamily, rowKey, column)
+      typeOf[V] match {
+        case t if t =:= typeOf[String] => columnMutation.putValue(value.asInstanceOf[String], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Long] => columnMutation.putValue(value.asInstanceOf[Long], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Int] => columnMutation.putValue(value.asInstanceOf[Int], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Double] => columnMutation.putValue(value.asInstanceOf[Double], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Boolean] => columnMutation.putValue(value.asInstanceOf[Boolean], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Float] => columnMutation.putValue(value.asInstanceOf[Float], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case otherwise => throw new IllegalArgumentException(s"Usupported value type: ${otherwise}")
+      }
     }
 
-    def +=(path: ((K, C), String))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
+    def +=[V](path: ((K, C), V))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagV: TypeTag[V]): Execution[Void] = {
       path match {
         case ((rowKey, column), value) => {
-          keyspace.prepareColumnMutation(columnFamily, rowKey, column)
-            .putValue(value, null)
+          +=(rowKey, column, value)(keyspace, typeTagV)
         }
       }
     }
+
+    /**
+     * Delete column
+     *
+     * @param rowKey
+     * @param column
+     * @param keyspace
+     * @return
+     */
 
     def -=(rowKey: K, column: C)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
       keyspace.prepareColumnMutation(columnFamily, rowKey, column)
@@ -45,16 +74,47 @@ trait ColumnFamilyEnhancers {
       }
     }
 
-    def ++=(rowKey: K, column: C, value: String, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
-      mutationBatch.withRow(columnFamily, rowKey)
-        .putColumn(column, value, ttl.getOrElse(null.asInstanceOf[Int]))
+    /**
+     * Batch put value
+     *
+     * @param rowKey
+     * @param column
+     * @param value
+     * @param ttl
+     * @param mutationBatch
+     * @param typeTagV
+     * @tparam V
+     * @return
+     */
+
+    def ++=[V](rowKey: K, column: C, value: V, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch, typeTagV: TypeTag[V]): ColumnListMutation[C] = {
+      val columnListMutation = mutationBatch.withRow(columnFamily, rowKey)
+      typeOf[V] match {
+        case t if t =:= typeOf[String] => columnListMutation.putColumn(column, value.asInstanceOf[String], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Long] => columnListMutation.putColumn(column, value.asInstanceOf[Long], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Int] => columnListMutation.putColumn(column, value.asInstanceOf[Int], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Double] => columnListMutation.putColumn(column, value.asInstanceOf[Double], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Boolean] => columnListMutation.putColumn(column, value.asInstanceOf[Boolean], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case t if t =:= typeOf[Float] => columnListMutation.putColumn(column, value.asInstanceOf[Float], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case otherwise => throw new IllegalArgumentException(s"Usupported value type: ${otherwise}")
+      }
+      columnListMutation
     }
 
-    def ++=(path: ((K, C), String))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
+    def ++=[V](path: ((K, C), V))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch, typeTagV: TypeTag[V]): ColumnListMutation[C] = {
       path match {
-        case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch)
+        case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch, typeTagV)
       }
     }
+
+    /**
+     * Batch delete column
+     *
+     * @param rowKey
+     * @param column
+     * @param mutationBatch
+     * @return
+     */
 
     def --=(rowKey: K, column: C)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
       mutationBatch.withRow(columnFamily, rowKey)

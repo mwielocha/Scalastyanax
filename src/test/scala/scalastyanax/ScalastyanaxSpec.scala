@@ -3,7 +3,6 @@ package scalastyanax
 import org.specs2.mutable.Specification
 import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.model.ColumnList
-import scala.util.Failure
 import scala.util._
 
 /**
