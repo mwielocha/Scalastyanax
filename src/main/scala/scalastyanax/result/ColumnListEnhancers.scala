@@ -28,7 +28,7 @@ trait ColumnListEnhancers extends ColumnEnhancers {
         case t if t =:= typeOf[Date] => Option(columnList.getDateValue(column, null).asInstanceOf[T])
         case t if t =:= typeOf[Double] => Option(columnList.getDoubleValue(column, null).asInstanceOf[T])
         case t if t =:= typeOf[Boolean] => Option(columnList.getBooleanValue(column, null).asInstanceOf[T])
-        case otherwise => throw new IllegalStateException(s"Invalid column type: ${otherwise}")
+        case otherwise => throw new IllegalArgumentException(s"Usupported column type: ${otherwise}")
       }
     }
 

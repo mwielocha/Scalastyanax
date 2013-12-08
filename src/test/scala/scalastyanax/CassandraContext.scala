@@ -7,7 +7,7 @@ import com.netflix.astyanax.impl.AstyanaxConfigurationImpl
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType
 import com.netflix.astyanax.thrift.ThriftFamilyFactory
 import com.netflix.astyanax.model.ColumnFamily
-import com.netflix.astyanax.serializers.StringSerializer
+import com.netflix.astyanax.serializers.{LongSerializer, StringSerializer}
 import scala.collection.JavaConversions._
 import org.specs2.mutable.{After, BeforeAfter, Before, Around}
 import org.specs2.execute.{AsResult, Result}
@@ -31,6 +31,7 @@ object CassandraConnection {
 class CassandraConnection {
   val keyspaceName = "Scalastyanax_unit"
   val columnFamilyName = "Scalastyanax_unit_cf"
+  val columnFamilyWithCounterColumnsName = "Scalastyanax_counter_unit_cf"
 
   lazy val connectionPool = new ConnectionPoolConfigurationImpl("ConnectionPool_Cluster")
     .setMaxConnsPerHost(80)
@@ -66,13 +67,19 @@ class CassandraConnection {
 
   val cluster: Cluster = cassandraContext.getClient
 
-  lazy val keyspace = cluster.getKeyspace(keyspaceName)
+  implicit lazy val keyspace = cluster.getKeyspace(keyspaceName)
 
-  lazy val columnFamily = new ColumnFamily[String, String](
+  implicit lazy val columnFamily = new ColumnFamily[String, String](
     columnFamilyName, // Column Family Name
     StringSerializer.get(), // Key Serializer
     StringSerializer.get(), // Column Serializer
     StringSerializer.get()) // Value Serializer
+
+  implicit lazy val columnFamilyWithCounterColumns = new ColumnFamily[String, String](
+    columnFamilyWithCounterColumnsName, // Column Family Name
+    StringSerializer.get(), // Key Serializer
+    StringSerializer.get(), // Column Serializer
+    LongSerializer.get()) // Value Serializer
 }
 
 class CassandraContext extends After {
@@ -80,19 +87,27 @@ class CassandraContext extends After {
   val logger = LoggerFactory.getLogger(getClass)
 
   import CassandraConnection._
+  import scalastyanax.Scalastyanax._
 
-  if(defaultConnection.keyspace.describeKeyspace().getColumnFamily(defaultConnection.columnFamilyName) == null) {
-    defaultConnection.keyspace.createColumnFamily(columnFamily, ImmutableMap.builder[String, Object]()
-      .put("default_validation_class", "UTF8Type")
-      .put("key_validation_class",     "UTF8Type")
-      .put("comparator_type",          "UTF8Type").build())
-  }
-
-  implicit val columnFamily = defaultConnection.columnFamily
   implicit val keyspace = defaultConnection.keyspace
+  implicit val columnFamily = defaultConnection.columnFamily
+  implicit val columnFamilyWithCounterColumns = defaultConnection.columnFamilyWithCounterColumns
+
+  columnFamily.create(
+    "default_validation_class" -> "UTF8Type",
+    "key_validation_class"     -> "UTF8Type",
+    "comparator_type"          -> "UTF8Type"
+  )
+
+  columnFamilyWithCounterColumns.create(
+    "default_validation_class" -> "CounterColumnType",
+    "key_validation_class"     -> "UTF8Type",
+    "comparator_type"          -> "UTF8Type"
+  )
 
   def after: Any = {
     logger.info("Clean up...")
-    keyspace.truncateColumnFamily(columnFamily)
+    columnFamily.truncate
+    columnFamilyWithCounterColumns.truncate
   }
 }

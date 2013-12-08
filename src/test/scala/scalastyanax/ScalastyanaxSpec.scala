@@ -3,7 +3,6 @@ package scalastyanax
 import org.specs2.mutable.Specification
 import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.model.ColumnList
-import scala.util.Failure
 import scala.util._
 
 /**
@@ -213,6 +212,37 @@ class ScalastyanaxSpec extends Specification {
       }
 
       values.toSeq.sorted === Seq("Value 3", "Value 4", "Value 5", "Value 6")
+    }
+
+    "increment a counter column" in new CassandraContext {
+
+      (columnFamilyWithCounterColumns ^= ("RowWithCounterColumn #1" -> "CounterColumn #1" -> 6)).execute
+      (columnFamilyWithCounterColumns ^= ("RowWithCounterColumn #1" -> "CounterColumn #1" -> 2)).execute
+
+      val value: Option[Long] = columnFamilyWithCounterColumns("RowWithCounterColumn #1" -> "CounterColumn #1").get match {
+        case Success(result) => result.getResult.value[Long]
+        case Failure(t) => None
+      }
+
+      value should beSome(8)
+    }
+
+    "batch increment a counter column" in new CassandraContext {
+
+      keyspace.newMutationBatch { implicit batch =>
+        columnFamilyWithCounterColumns ^^= ("RowWithCounterColumn #2" -> "CounterColumn #2" -> 12)
+      }.execute
+
+      keyspace.newMutationBatch { implicit batch =>
+        columnFamilyWithCounterColumns ^^= ("RowWithCounterColumn #2" -> "CounterColumn #2" -> 100)
+      }.execute
+
+      val value: Option[Long] = columnFamilyWithCounterColumns("RowWithCounterColumn #2" -> "CounterColumn #2").get match {
+        case Success(result) => result.getResult.value[Long]
+        case Failure(t) => None
+      }
+
+      value should beSome(112)
     }
   }
 }

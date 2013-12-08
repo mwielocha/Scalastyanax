@@ -1,6 +1,7 @@
 package scalastyanax.operations
 
 import com.netflix.astyanax.{MutationBatch, Keyspace}
+import com.netflix.astyanax.model.ColumnFamily
 
 /**
  * author mikwie
