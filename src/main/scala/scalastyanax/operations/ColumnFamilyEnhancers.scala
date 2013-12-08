@@ -9,6 +9,7 @@ import java.lang
 import scalastyanax.RangeQuery
 import reflect.runtime.universe._
 import scala.annotation.implicitNotFound
+import com.netflix.astyanax.connectionpool.OperationResult
 
 /**
  * author mikwie
@@ -51,6 +52,26 @@ trait ColumnFamilyEnhancers {
         case ((rowKey, column), value) => {
           +=(rowKey, column, value)(keyspace, typeTagV)
         }
+      }
+    }
+
+    /**
+     * Increment counter column
+     *
+     * @param rowKey
+     * @param column
+     * @param value
+     * @param keyspace
+     * @return
+     */
+
+    def ^=(rowKey: K, column: C, value: Long)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
+      keyspace.prepareColumnMutation(columnFamily, rowKey, column).incrementCounterColumn(value)
+    }
+
+    def ^=(path: ((K, C), Long))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
+      path match {
+        case ((rowKey, column), value) => ^=(rowKey, column, value)(keyspace)
       }
     }
 
@@ -106,6 +127,30 @@ trait ColumnFamilyEnhancers {
         case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch, typeTagV)
       }
     }
+
+    /**
+     * Batch increment counter column
+     *
+     * @param rowKey
+     * @param column
+     * @param value
+     * @param ttl
+     * @param mutationBatch
+     * @return
+     */
+
+    def ^^=(rowKey: K, column: C, value: Long)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
+      mutationBatch.withRow(columnFamily, rowKey).incrementCounterColumn(column, value)
+    }
+
+    def ^^=(path: ((K, C), Long))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
+      path match {
+        case ((rowKey, column), value) => {
+          ^^=(rowKey, column, value)(mutationBatch)
+        }
+      }
+    }
+
 
     /**
      * Batch delete column
@@ -347,6 +392,17 @@ trait ColumnFamilyEnhancers {
 
     def create(properties: (String, AnyRef)*)(implicit keyspace: Keyspace): Boolean = {
       create(properties.toMap)(keyspace)
+    }
+
+    /**
+     * Truncate column family
+     *
+     * @param keyspace
+     * @return
+     */
+
+    def truncate(implicit keyspace: Keyspace): OperationResult[Void] = {
+      keyspace.truncateColumnFamily(columnFamily)
     }
   }
 }
