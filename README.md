@@ -116,7 +116,7 @@ keyspace.withBatchMutation(batch) { implicit batch =>
 
 Counter columns:
 
-```
+```scala
 
 val columnFamilyWithCounterColumns = new ColumnFamily[String, String](
     columnFamilyWithCounterColumnsName, // Column Family Name
