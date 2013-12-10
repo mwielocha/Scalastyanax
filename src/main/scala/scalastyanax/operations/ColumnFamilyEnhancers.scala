@@ -166,7 +166,7 @@ trait ColumnFamilyEnhancers {
 
     def ++=(path: (K, C))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
       path match {
-        case ((rowKey, column), value) => ++=(rowKey, column, None)(mutationBatch)
+        case (rowKey, column) => ++=(rowKey, column, None)(mutationBatch)
       }
     }
 
