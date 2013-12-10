@@ -56,6 +56,27 @@ trait ColumnFamilyEnhancers {
     }
 
     /**
+     * Put empty column
+     *
+     * @param rowKey
+     * @param column
+     * @param ttl
+     * @param keyspace
+     * @return
+     */
+
+    def +=(rowKey: K, column: C, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
+      keyspace.prepareColumnMutation(columnFamily, rowKey, column)
+        .putEmptyColumn(ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+    }
+
+    def +=(path: (K, C))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): Execution[Void] = {
+      path match {
+        case (rowKey, column) => +=(rowKey, column, None)(keyspace)
+      }
+    }
+
+      /**
      * Increment counter column
      *
      * @param rowKey
@@ -129,12 +150,33 @@ trait ColumnFamilyEnhancers {
     }
 
     /**
+     * Batch put empty column
+     *
+     * @param rowKey
+     * @param column
+     * @param ttl
+     * @param mutationBatch
+     * @return
+     */
+
+    def ++=(rowKey: K, column: C, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
+      mutationBatch.withRow(columnFamily, rowKey)
+        .putEmptyColumn(column, ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+    }
+
+    def ++=(path: (K, C))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
+      path match {
+        case ((rowKey, column), value) => ++=(rowKey, column, None)(mutationBatch)
+      }
+    }
+
+
+      /**
      * Batch increment counter column
      *
      * @param rowKey
      * @param column
      * @param value
-     * @param ttl
      * @param mutationBatch
      * @return
      */
