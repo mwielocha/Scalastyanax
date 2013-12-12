@@ -17,3 +17,4 @@ object Scalastyanax extends KeyspaceEnhancers
   with RowsEnhancers
   with RangeQueryBuilder
   with ColumnQueryEnhancers
+  with AllRowsQueryEnhancers

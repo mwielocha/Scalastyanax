@@ -33,5 +33,8 @@ trait RowsEnhancers extends ColumnListEnhancers {
 
     def toValueMap[V : TypeTag]: Map[K, Iterable[V]] = toMap.mapValues(_.values[V])
 
+    def foreach(function: Row[K, C] => Unit) {
+      rows.iterator().foreach(function(_))
+    }
   }
 }
