@@ -17,8 +17,8 @@ object ApplicationBuild extends Build {
     "com.google.code.findbugs" % "jsr305" % "1.3.+",
     /*"org.cassandraunit" % "cassandra-unit" % "1.1.1.2" % "test"
       exclude("org.apache.cassandra", "cassandra-all") exclude("org.hectorclient", "hector-core"),*/
-    "org.specs2" %% "specs2" % "2.1.1" % "test",
-    "org.scala-lang" % "scala-reflect" % "2.10.3"
+    "org.specs2" %% "specs2" % "2.1.1" % "test"
+    /*"org.scala-lang" % "scala-reflect" % "2.10.3"*/
   )
 
   val buildSettings = Defaults.defaultSettings ++ Seq(

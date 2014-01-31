@@ -7,7 +7,6 @@ import scala.collection.JavaConversions._
 import com.netflix.astyanax.recipes.reader.AllRowsReader
 import java.lang
 import scalastyanax.RangeQuery
-import reflect.runtime.universe._
 import scala.annotation.implicitNotFound
 import com.netflix.astyanax.connectionpool.OperationResult
 
@@ -29,28 +28,28 @@ trait ColumnFamilyEnhancers {
      * @param value
      * @param ttl
      * @param keyspace
-     * @param typeTagV
+     * @param manifestV
      * @tparam V
      * @return
      */
 
-    def +=[V](rowKey: K, column: C, value: V, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagV: TypeTag[V]): Execution[Void] = {
+    def +=[V](rowKey: K, column: C, value: V, ttl: Option[Int] = None)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestV: Manifest[V]): Execution[Void] = {
       val columnMutation =  keyspace.prepareColumnMutation(columnFamily, rowKey, column)
-      typeOf[V] match {
-        case t if t =:= typeOf[String] => columnMutation.putValue(value.asInstanceOf[String], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Long] => columnMutation.putValue(value.asInstanceOf[Long], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Int] => columnMutation.putValue(value.asInstanceOf[Int], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Double] => columnMutation.putValue(value.asInstanceOf[Double], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Boolean] => columnMutation.putValue(value.asInstanceOf[Boolean], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Float] => columnMutation.putValue(value.asInstanceOf[Float], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+      manifestV match {
+        case m if m <:< manifest[String] => columnMutation.putValue(value.asInstanceOf[String], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Long] => columnMutation.putValue(value.asInstanceOf[Long], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Int] => columnMutation.putValue(value.asInstanceOf[Int], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Double] => columnMutation.putValue(value.asInstanceOf[Double], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Boolean] => columnMutation.putValue(value.asInstanceOf[Boolean], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Float] => columnMutation.putValue(value.asInstanceOf[Float], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
         case otherwise => throw new IllegalArgumentException(s"Usupported value type: ${otherwise}")
       }
     }
 
-    def +=[V](path: ((K, C), V))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagV: TypeTag[V]): Execution[Void] = {
+    def +=[V](path: ((K, C), V))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestV: Manifest[V]): Execution[Void] = {
       path match {
         case ((rowKey, column), value) => {
-          +=(rowKey, column, value)(keyspace, typeTagV)
+          +=(rowKey, column, value)(keyspace, manifestV)
         }
       }
     }
@@ -124,28 +123,28 @@ trait ColumnFamilyEnhancers {
      * @param value
      * @param ttl
      * @param mutationBatch
-     * @param typeTagV
+     * @param manifestV
      * @tparam V
      * @return
      */
 
-    def ++=[V](rowKey: K, column: C, value: V, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch, typeTagV: TypeTag[V]): ColumnListMutation[C] = {
+    def ++=[V](rowKey: K, column: C, value: V, ttl: Option[Int] = None)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch, manifestV: Manifest[V]): ColumnListMutation[C] = {
       val columnListMutation = mutationBatch.withRow(columnFamily, rowKey)
-      typeOf[V] match {
-        case t if t =:= typeOf[String] => columnListMutation.putColumn(column, value.asInstanceOf[String], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Long] => columnListMutation.putColumn(column, value.asInstanceOf[Long], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Int] => columnListMutation.putColumn(column, value.asInstanceOf[Int], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Double] => columnListMutation.putColumn(column, value.asInstanceOf[Double], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Boolean] => columnListMutation.putColumn(column, value.asInstanceOf[Boolean], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
-        case t if t =:= typeOf[Float] => columnListMutation.putColumn(column, value.asInstanceOf[Float], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+      manifestV match {
+        case m if m <:< manifest[String] => columnListMutation.putColumn(column, value.asInstanceOf[String], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Long] => columnListMutation.putColumn(column, value.asInstanceOf[Long], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Int] => columnListMutation.putColumn(column, value.asInstanceOf[Int], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Double] => columnListMutation.putColumn(column, value.asInstanceOf[Double], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Boolean] => columnListMutation.putColumn(column, value.asInstanceOf[Boolean], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
+        case m if m <:< manifest[Float] => columnListMutation.putColumn(column, value.asInstanceOf[Float], ttl.map(int2Integer(_)).orNull[java.lang.Integer])
         case otherwise => throw new IllegalArgumentException(s"Usupported value type: ${otherwise}")
       }
       columnListMutation
     }
 
-    def ++=[V](path: ((K, C), V))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch, typeTagV: TypeTag[V]): ColumnListMutation[C] = {
+    def ++=[V](path: ((K, C), V))(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch, manifestV: Manifest[V]): ColumnListMutation[C] = {
       path match {
-        case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch, typeTagV)
+        case ((rowKey, column), value) => ++=(rowKey, column, value, None)(mutationBatch, manifestV)
       }
     }
 
@@ -330,11 +329,11 @@ trait ColumnFamilyEnhancers {
      * @param rowKey
      * @param columnRange
      * @param keyspace
-     * @param typeTagK
-     * @param typeTagC
+     * @param manifestK
+     * @param manifestC
      * @return
      */
-    def apply(rowKey: K, columnRange: RangeQuery[C])(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagK: TypeTag[K], typeTagC: TypeTag[C]): RowQuery[K, C] = {
+    def apply(rowKey: K, columnRange: RangeQuery[C])(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]): RowQuery[K, C] = {
       keyspace.prepareQuery(columnFamily).getRow(rowKey)
         .withColumnRange(columnRange.fromOrNull, columnRange.toOrNull, columnRange.reverse, columnRange.limitOrNull)
     }
@@ -345,13 +344,13 @@ trait ColumnFamilyEnhancers {
      *
      * @param path
      * @param keyspace
-     * @param typeTagK
-     * @param typeTagC
+     * @param manifestK
+     * @param manifestC
      * @return
      */
-    def apply(path: (K, RangeQuery[C]))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagK: TypeTag[K], typeTagC: TypeTag[C]): RowQuery[K, C] = path match {
+    def apply(path: (K, RangeQuery[C]))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]): RowQuery[K, C] = path match {
       case (rowKey, columnRange) => {
-        apply(rowKey, columnRange)(keyspace, typeTagK, typeTagC)
+        apply(rowKey, columnRange)(keyspace, manifestK, manifestC)
       }
     }
 
@@ -361,11 +360,11 @@ trait ColumnFamilyEnhancers {
      * @param rowKeys
      * @param columnRange
      * @param keyspace
-     * @param typeTagK
-     * @param typeTagC
+     * @param manifestK
+     * @param manifestC
      * @return
      */
-    def apply(rowKeys: Iterable[K], columnRange: RangeQuery[C])(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagK: TypeTag[K], typeTagC: TypeTag[C]): RowSliceQuery[K, C] = {
+    def apply(rowKeys: Iterable[K], columnRange: RangeQuery[C])(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]): RowSliceQuery[K, C] = {
       keyspace.prepareQuery(columnFamily).getRowSlice(rowKeys)
         .withColumnRange(columnRange.fromOrNull, columnRange.toOrNull, columnRange.reverse, columnRange.limitOrNull)
     }
@@ -375,13 +374,13 @@ trait ColumnFamilyEnhancers {
      *
      * @param path
      * @param keyspace
-     * @param typeTagK
-     * @param typeTagC
+     * @param manifestK
+     * @param manifestC
      * @return
      */
-    def apply(path: (Iterable[K], RangeQuery[C]))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, typeTagK: TypeTag[K], typeTagC: TypeTag[C]): RowSliceQuery[K, C] = path match {
+    def apply(path: (Iterable[K], RangeQuery[C]))(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]): RowSliceQuery[K, C] = path match {
       case (rowKeys, columnRange) => {
-        apply(rowKeys, columnRange)(keyspace, typeTagK, typeTagC)
+        apply(rowKeys, columnRange)(keyspace, manifestK, manifestC)
       }
     }
 
