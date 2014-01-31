@@ -3,7 +3,6 @@ package scalastyanax.result
 import com.netflix.astyanax.model.{ColumnList, Row, Rows}
 import scala.util.Try
 import scala.collection.JavaConversions._
-import reflect.runtime.universe._
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,11 +26,11 @@ trait RowsEnhancers extends ColumnListEnhancers {
 
     def map[R](mapper: Row[K, C] => R): Iterable[R] = rows.map(mapper)
 
-    def flatValues[V : TypeTag]: Iterable[V] = rows.flatMap(_.getColumns.values[V])
+    def flatValues[V : Manifest]: Iterable[V] = rows.flatMap(_.getColumns.values[V])
 
     def toMap: Map[K, ColumnList[C]] = rows.getKeys.map(rowKey => rowKey -> rows.getRow(rowKey).getColumns).toMap
 
-    def toValueMap[V : TypeTag]: Map[K, Iterable[V]] = toMap.mapValues(_.values[V])
+    def toValueMap[V : Manifest]: Map[K, Iterable[V]] = toMap.mapValues(_.values[V])
 
     def foreach(function: Row[K, C] => Unit) {
       rows.iterator().foreach(function(_))
