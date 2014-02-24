@@ -22,13 +22,13 @@ trait RowsEnhancers extends ColumnListEnhancers {
     def apply(rowKey: K): Option[Row[K, C]] = Try(rows.getRow(rowKey)).toOption
 
     // TODO: what to do with IllegalStateException?
-    def keys: Iterable[K] = rows.getKeys
+    def keys: Iterable[K] = rows.iterator.map(_.getKey).toIterable
 
     def map[R](mapper: Row[K, C] => R): Iterable[R] = rows.map(mapper)
 
     def flatValues[V : Manifest]: Iterable[V] = rows.flatMap(_.getColumns.values[V])
 
-    def toMap: Map[K, ColumnList[C]] = rows.getKeys.map(rowKey => rowKey -> rows.getRow(rowKey).getColumns).toMap
+    def toMap: Map[K, ColumnList[C]] = rows.iterator.map(row => row.getKey -> row.getColumns).toMap
 
     def toValueMap[V : Manifest]: Map[K, Iterable[V]] = toMap.mapValues(_.values[V])
 

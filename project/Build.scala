@@ -1,14 +1,14 @@
 import sbt._
 import Keys._
 
-object ApplicationBuild extends Build {
+object ScalastyanaxBuild extends Build {
 
   object V {
     val astyanax = "1.56.+"
   }
 
   val appName         = "Scalastyanax"
-  val appVersion      = "2.3.0-SNAPSHOT"
+  val appVersion      = "2.3.1-SNAPSHOT"
 
   val appDependencies =  Seq(
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/ % "provided",

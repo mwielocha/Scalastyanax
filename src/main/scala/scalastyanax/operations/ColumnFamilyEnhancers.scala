@@ -192,6 +192,18 @@ trait ColumnFamilyEnhancers {
       }
     }
 
+    /**
+     * Batch delete row
+     *
+     * @param rowKey
+     * @param mutationBatch
+     * @return
+     */
+
+    def --=(rowKey: K)(implicit @implicitNotFound("Mutation batch must be implicitly provided!") mutationBatch: MutationBatch): ColumnListMutation[C] = {
+      mutationBatch.withRow(columnFamily, rowKey).delete
+    }
+
 
     /**
      * Batch delete column
