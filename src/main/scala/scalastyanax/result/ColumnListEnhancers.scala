@@ -48,5 +48,13 @@ trait ColumnListEnhancers extends ColumnEnhancers {
     def flatMapValues[V : Manifest, R](mapper: V => R): Iterable[R] = {
       mapValues(mapper).flatten
     }
+
+    def mapColumns[V : Manifest, R](mapper: (C, V) => R): Iterable[Option[R]] = {
+      columnList.map(column => column.value[V].map(mapper(column.name, _)))
+    }
+
+    def flatMapColumns[V : Manifest, R](mapper: (C, V) => R): Iterable[R] = {
+      columnList.map(column => column.value[V].map(mapper(column.name, _))).flatten
+    }
   }
 }
