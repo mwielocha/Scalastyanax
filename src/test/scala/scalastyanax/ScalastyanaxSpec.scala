@@ -2,8 +2,9 @@ package scalastyanax
 
 import org.specs2.mutable.Specification
 import com.netflix.astyanax.connectionpool.OperationResult
-import com.netflix.astyanax.model.ColumnList
+import com.netflix.astyanax.model.{Composite, ColumnList}
 import scala.util._
+import com.netflix.astyanax.serializers.StringSerializer
 
 /**
  * Created with IntelliJ IDEA.
@@ -243,6 +244,19 @@ class ScalastyanaxSpec extends Specification {
       }
 
       value should beSome(112)
+    }
+
+    "pattern match a Composite" in {
+
+      import Scalastyanax._
+
+      val composite = new Composite("one", "two")
+
+      composite(0) == Some("one")
+      composite(5) == None
+
+      composite(0, StringSerializer.get()) == Some("one")
+
     }
   }
 }
