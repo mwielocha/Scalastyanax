@@ -24,7 +24,7 @@ trait RowsEnhancers extends ColumnListEnhancers {
     // TODO: what to do with IllegalStateException?
     def keys: Iterable[K] = rows.iterator.map(_.getKey).toIterable
 
-    def map[R](mapper: Row[K, C] => R): Iterable[R] = rows.map(mapper)
+    def map[R](mapper: Row[K, C] => R): Iterable[R] = rows.iterator().map(mapper).toIterable
 
     def flatValues[V : Manifest]: Iterable[V] = rows.flatMap(_.getColumns.values[V])
 

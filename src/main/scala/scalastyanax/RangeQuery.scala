@@ -25,7 +25,7 @@ case class RangeQuery[T](fromOpt: Option[T], toOpt: Option[T], limitOpt: Option[
 
   private[scalastyanax] def toOrNull: T = toOpt.getOrElse(null.asInstanceOf[T])
 
-  private[scalastyanax] def limitOrNull: Int = limitOpt.getOrElse(null.asInstanceOf[Int])
+  private[scalastyanax] def limitOrNull: Int = limitOpt.getOrElse(Integer.MAX_VALUE)
 
 }
 
