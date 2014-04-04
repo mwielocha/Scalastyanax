@@ -1,14 +1,19 @@
 package scalastyanax.operations
 
-import com.netflix.astyanax.model.{Row, Rows, ColumnFamily}
+import com.netflix.astyanax.model._
 import com.netflix.astyanax.{Execution, ColumnListMutation, MutationBatch, Keyspace}
 import com.netflix.astyanax.query.{RowSliceQuery, RowQuery, ColumnQuery}
 import scala.collection.JavaConversions._
 import com.netflix.astyanax.recipes.reader.AllRowsReader
 import java.lang
 import scalastyanax.RangeQuery
-import scala.annotation.implicitNotFound
+import scala.annotation.{tailrec, implicitNotFound}
 import com.netflix.astyanax.connectionpool.OperationResult
+import scala.util.{Failure, Success}
+import scala.util.Failure
+import scala.Some
+import scala.util.Success
+import scalastyanax.RangeQuery
 
 /**
  * author mikwie
@@ -420,6 +425,41 @@ trait ColumnFamilyEnhancers {
           function(input)
         }
       }
+    }
+
+    def foreachWithPaging(function: (K, Iterable[Column[C]]) => Unit, pageSize: Int)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]) = {
+
+      import RowQueryImplicits._
+
+      new AllRowsReader.Builder(keyspace, columnFamily)
+        .withColumnRange(null.asInstanceOf[C], null.asInstanceOf, false, pageSize)
+        .forEachRow(new com.google.common.base.Function[Row[K, C], java.lang.Boolean]() {
+        def apply(input: Row[K, C]): lang.Boolean = {
+
+          val rowKey = input.getKey
+          val columns = input.getColumns
+
+          @tailrec
+          def applyFunction(columns: Iterable[Column[C]]): Boolean = {
+            columns.size match {
+              case 0 => true
+              case otherwise => {
+                val from = columns.map(_.getName).lastOption
+                function(rowKey, columns)
+
+                columnFamily(rowKey -> RangeQuery[C](from, None, Some(pageSize), false)).get match {
+                  case Failure(e) => false
+                  case Success(result) => {
+                    applyFunction(result.getResult.drop(1))
+                  }
+                }
+              }
+            }
+          }
+
+         applyFunction(columns)
+        }
+      })
     }
   }
 
