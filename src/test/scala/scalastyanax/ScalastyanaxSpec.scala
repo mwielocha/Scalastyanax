@@ -1,10 +1,11 @@
 package scalastyanax
 
 import org.specs2.mutable.Specification
-import com.netflix.astyanax.connectionpool.OperationResult
-import com.netflix.astyanax.model.{Composite, ColumnList}
+import com.netflix.astyanax.model.Composite
 import scala.util._
 import com.netflix.astyanax.serializers.StringSerializer
+import scala.collection.mutable.ListBuffer
+import org.specs2.specification.{Step, Fragments}
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,6 +19,8 @@ class ScalastyanaxSpec extends Specification {
   sequential
 
   import scalastyanax.Scalastyanax._
+
+  override def map(fs: => Fragments) = Step(CassandraConnection.embeddedDb) ^ Step(CassandraConnection.startDb) ^ fs ^ Step(CassandraConnection.stopDb)
 
   "Column Family" should {
 
@@ -246,6 +249,28 @@ class ScalastyanaxSpec extends Specification {
       value should beSome(112)
     }
 
+    "page through columns in row applying function" in new CassandraContext {
+
+      val colsNum = 1000
+      val pageSize = 100
+
+      val buffer = new ListBuffer[String]
+
+      keyspace.newMutationBatch {
+        implicit batch =>
+          for (colNum <- 0 to colsNum) columnFamily ++= ("Row" -> s"Column$colNum" -> s"Value$colNum")
+      }.execute
+
+      columnFamily.foreachWithPaging(
+        (rowKey, columns) => {
+          columns.foreach(col => buffer += s"$rowKey:${col.getStringValue}")
+        }, pageSize
+      )
+
+      buffer.size === colsNum
+
+    }
+
     "pattern match a Composite" in {
 
       import Scalastyanax._
@@ -258,5 +283,6 @@ class ScalastyanaxSpec extends Specification {
       composite(0, StringSerializer.get()) == Some("one")
 
     }
+
   }
 }

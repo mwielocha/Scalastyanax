@@ -1,5 +1,6 @@
 package scalastyanax
 
+import _root_.me.prettyprint.hector.api.factory.HFactory
 import org.specs2.specification.{BeforeEach, Context, Apply, Scope}
 import com.netflix.astyanax.connectionpool.impl.{CountingConnectionPoolMonitor, ConnectionPoolConfigurationImpl}
 import com.netflix.astyanax.{Cluster, AstyanaxContext}
@@ -14,6 +15,8 @@ import org.specs2.execute.{AsResult, Result}
 import org.slf4j.LoggerFactory
 import com.google.common.collect.ImmutableMap
 import org.apache.cassandra.service.CassandraDaemon
+import com.netflix.astyanax.test.EmbeddedCassandra
+import java.io.File
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,20 +25,46 @@ import org.apache.cassandra.service.CassandraDaemon
  * Time: 21:01
  * To change this template use File | Settings | File Templates.
  */
+
 object CassandraConnection {
 
-  lazy val defaultConnection = new CassandraConnection
+  final val DEFAULT_CASSANDRA_PORT = 9162
+  final val DEFAULT_CASSANDRA_STORAGE_PORT = 7002
+  final val DEFAULT_CLUSTER_NAME = "ConnectionPool_Cluster"
 
-}
-
-class CassandraConnection {
   val keyspaceName = "Scalastyanax_unit"
   val columnFamilyName = "Scalastyanax_unit_cf"
   val columnFamilyWithCounterColumnsName = "Scalastyanax_counter_unit_cf"
 
-  lazy val connectionPool = new ConnectionPoolConfigurationImpl("ConnectionPool_Cluster")
+  lazy val embeddedDb = {
+    val tempCassadraStorageDir: File = new File("/tmp/cassandra_" + System.currentTimeMillis)
+    tempCassadraStorageDir.deleteOnExit()
+    val cass = new EmbeddedCassandra(tempCassadraStorageDir,
+      DEFAULT_CLUSTER_NAME,
+      DEFAULT_CASSANDRA_PORT,
+      DEFAULT_CASSANDRA_STORAGE_PORT)
+    cass
+  }
+
+  def startDb = {
+    embeddedDb.start()
+    val cluster = HFactory.getOrCreateCluster("ConnectionPool_Cluster", s"localhost:$DEFAULT_CASSANDRA_PORT")
+    cluster.addKeyspace(HFactory.createKeyspaceDefinition(keyspaceName))
+  }
+
+  def stopDb = {
+    embeddedDb.stop()
+  }
+
+}
+
+class CassandraConnection(clusterName: String, clusterHost: String, clusterPort: Int) {
+
+  import CassandraConnection._
+
+  lazy val connectionPool = new ConnectionPoolConfigurationImpl(clusterName)
     .setMaxConnsPerHost(80)
-    .setSeeds("localhost:9160")
+    .setSeeds(s"$clusterHost:$clusterPort")
     .setMaxOperationsPerConnection(10000)
     .setMaxPendingConnectionsPerHost(20)
     .setConnectionLimiterMaxPendingCount(20)
@@ -55,13 +84,13 @@ class CassandraConnection {
     .setInitConnsPerHost(10)
 
   lazy val cassandraContext: AstyanaxContext[Cluster] = new AstyanaxContext.Builder()
-    .forCluster("Cluster")
+    .forCluster(clusterName)
     .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
     .setDiscoveryType(NodeDiscoveryType.NONE)
-  )
+    )
     .withConnectionPoolConfiguration(connectionPool)
     .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-    .buildCluster(ThriftFamilyFactory.getInstance());
+    .buildCluster(ThriftFamilyFactory.getInstance())
 
   cassandraContext.start()
 
@@ -84,25 +113,27 @@ class CassandraConnection {
 
 class CassandraContext extends After {
 
+  import scalastyanax.Scalastyanax._
+  import CassandraConnection._
+
   val logger = LoggerFactory.getLogger(getClass)
 
-  import CassandraConnection._
-  import scalastyanax.Scalastyanax._
+  val connection = new CassandraConnection(DEFAULT_CLUSTER_NAME, "localhost", DEFAULT_CASSANDRA_PORT)
 
-  implicit val keyspace = defaultConnection.keyspace
-  implicit val columnFamily = defaultConnection.columnFamily
-  implicit val columnFamilyWithCounterColumns = defaultConnection.columnFamilyWithCounterColumns
+  implicit val keyspace = connection.keyspace
+  implicit val columnFamily = connection.columnFamily
+  implicit val columnFamilyWithCounterColumns = connection.columnFamilyWithCounterColumns
 
   columnFamily.create(
     "default_validation_class" -> "UTF8Type",
-    "key_validation_class"     -> "UTF8Type",
-    "comparator_type"          -> "UTF8Type"
+    "key_validation_class" -> "UTF8Type",
+    "comparator_type" -> "UTF8Type"
   )
 
   columnFamilyWithCounterColumns.create(
     "default_validation_class" -> "CounterColumnType",
-    "key_validation_class"     -> "UTF8Type",
-    "comparator_type"          -> "UTF8Type"
+    "key_validation_class" -> "UTF8Type",
+    "comparator_type" -> "UTF8Type"
   )
 
   def after: Any = {

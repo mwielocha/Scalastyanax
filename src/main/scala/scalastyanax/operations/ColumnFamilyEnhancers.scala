@@ -432,15 +432,18 @@ trait ColumnFamilyEnhancers {
       import RowQueryImplicits._
 
       new AllRowsReader.Builder(keyspace, columnFamily)
-        .withColumnRange(null.asInstanceOf[C], null.asInstanceOf[C], false, pageSize)
+//        .withColumnRange(null.asInstanceOf[C], null.asInstanceOf[C], false, pageSize)
         .forEachRow(new com.google.common.base.Function[Row[K, C], java.lang.Boolean]() {
         def apply(input: Row[K, C]): lang.Boolean = {
+
+          println(s"Applying function to input: $input")
 
           val rowKey = input.getKey
           val columns = input.getColumns
 
           @tailrec
           def applyFunction(columns: Iterable[Column[C]]): Boolean = {
+            println(s"Applying function to columns: $columns")
             columns.size match {
               case 0 => true
               case otherwise => {
