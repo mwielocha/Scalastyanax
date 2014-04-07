@@ -432,7 +432,7 @@ trait ColumnFamilyEnhancers {
       import RowQueryImplicits._
 
       new AllRowsReader.Builder(keyspace, columnFamily)
-        .withColumnRange(null.asInstanceOf[C], null.asInstanceOf, false, pageSize)
+        .withColumnRange(null.asInstanceOf[C], null.asInstanceOf[C], false, pageSize)
         .forEachRow(new com.google.common.base.Function[Row[K, C], java.lang.Boolean]() {
         def apply(input: Row[K, C]): lang.Boolean = {
 
