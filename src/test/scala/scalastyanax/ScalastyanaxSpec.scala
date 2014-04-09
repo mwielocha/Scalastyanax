@@ -251,6 +251,7 @@ class ScalastyanaxSpec extends Specification {
 
     "page through columns in row applying function" in new CassandraContext {
 
+      val rowsNum = 10
       val colsNum = 1000
       val pageSize = 100
 
@@ -258,16 +259,16 @@ class ScalastyanaxSpec extends Specification {
 
       keyspace.newMutationBatch {
         implicit batch =>
-          for (colNum <- 0 to colsNum) columnFamily ++= ("Row" -> s"Column$colNum" -> s"Value$colNum")
+          for (rowNum <- 0 until rowsNum; colNum <- 0 until colsNum) columnFamily ++= (s"Row$rowNum" -> s"Column$colNum" -> s"Value$colNum")
       }.execute
 
       columnFamily.foreachWithPaging(
         (rowKey, columns) => {
           columns.foreach(col => buffer += s"$rowKey:${col.getStringValue}")
         }, pageSize
-      )
+      ).build().call()
 
-      buffer.size === colsNum
+      buffer.size === rowsNum * colsNum
 
     }
 
