@@ -1,5 +1,7 @@
 import sbt._
-import Keys._
+import sbt.Keys._
+import scala.Some
+import scala.Some
 
 object ScalastyanaxBuild extends Build {
 
@@ -8,7 +10,7 @@ object ScalastyanaxBuild extends Build {
   }
 
   val appName         = "Scalastyanax"
-  val appVersion      = "2.3.1-SNAPSHOT"
+  val appVersion      = "2.4.0-SNAPSHOT"
 
   val appDependencies =  Seq(
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/ % "provided",
@@ -26,10 +28,12 @@ object ScalastyanaxBuild extends Build {
     version := appVersion,
     organization := "scalastyanax",
     exportJars := true,
-    scalaVersion        := "2.10.3"
+    scalaVersion := "2.10.3"
   )
 
   val main = Project(id = appName, base = file("."),
-    settings = buildSettings ++ Seq(libraryDependencies ++= appDependencies)
+    settings = buildSettings ++ Seq(
+      libraryDependencies ++= appDependencies
+    )
   )
 }

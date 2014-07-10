@@ -3,6 +3,7 @@ package scalastyanax
 import scalastyanax.operations._
 import scalastyanax.result.{RowsEnhancers, ColumnListEnhancers}
 import scalastyanax.model.CompositeEnhancers
+import scalastyanax.formulas.ColumnFamilyFormulas
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,6 +14,7 @@ import scalastyanax.model.CompositeEnhancers
  */
 object Scalastyanax extends KeyspaceEnhancers
   with ColumnFamilyEnhancers
+  with ColumnFamilyFormulas
   with RowQueryEnhancers
   with RowSliceQueryEnhancers
   with RowsEnhancers
