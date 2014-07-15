@@ -7,7 +7,7 @@ import scalastyanax.operations.{ColumnFamilyEnhancers, RowQueryImplicits}
 import com.netflix.astyanax.recipes.reader.AllRowsReader
 import java.lang
 import scalastyanax.RangeQuery
-import scala.util.{Success, Failure}
+import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions._
 import RowQueryImplicits._
 
@@ -19,6 +19,20 @@ trait ColumnFamilyFormulas {
   self: ColumnFamilyEnhancers =>
 
   implicit class TraversableColumnFamily[K, C](val columnFamily: ColumnFamily[K, C]) {
+
+    def foreachRowKey(function: K => Unit)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]) = {
+      new AllRowsReader.Builder(keyspace, columnFamily)
+        .withColumnRange(null.asInstanceOf[C], null.asInstanceOf[C], false, 0)
+        .forEachRow(new com.google.common.base.Function[Row[K, C], java.lang.Boolean]() {
+
+        def apply(input: Row[K, C]): lang.Boolean = {
+          Try(function(input.getKey)) match{
+            case Success(_) => true
+            case Failure(_) => false
+          }
+        }
+      })
+    }
 
     def foreachWithPaging(rowKey: K, function: Iterable[Column[C]] => Unit, pageSize: Int)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]) = {
 

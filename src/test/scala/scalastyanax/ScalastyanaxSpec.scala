@@ -6,6 +6,7 @@ import scala.util._
 import com.netflix.astyanax.serializers.StringSerializer
 import scala.collection.mutable.ListBuffer
 import org.specs2.specification.{Step, Fragments}
+import scala.collection.mutable
 
 /**
  * Created with IntelliJ IDEA.
@@ -311,6 +312,34 @@ class ScalastyanaxSpec extends Specification {
       )
 
       buffer1.sorted === buffer2
+
+    }
+
+    "page through row keys in row key applying function" in new CassandraContext {
+
+      val rowsNum = 10
+      val colsNum = 1003
+      val pageSize = 100
+
+      val buffer1 = new mutable.HashSet[String]
+      val buffer2 = new mutable.HashSet[String]
+
+      keyspace.newMutationBatch {
+        implicit batch =>
+          for (rowNum <- 0 until rowsNum; colNum <- 0 until colsNum) {
+            val rowKey = s"Row$rowNum"
+            buffer1 += rowKey
+            columnFamily ++= (rowKey -> s"Column$colNum" -> s"Value$colNum")
+          }
+      }.execute
+
+      columnFamily.foreachWithPaging(
+        (rowKey, columns) => {
+          columns.foreach(col => buffer2 += s"$rowKey")
+        }, pageSize
+      ).build().call()
+
+      buffer1 === buffer2
 
     }
   }
