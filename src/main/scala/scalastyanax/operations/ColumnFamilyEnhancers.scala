@@ -1,6 +1,7 @@
 package scalastyanax.operations
 
 import com.netflix.astyanax.model._
+import com.netflix.astyanax.partitioner.Partitioner
 import com.netflix.astyanax.{Execution, ColumnListMutation, MutationBatch, Keyspace}
 import com.netflix.astyanax.query.{RowSliceQuery, RowQuery, ColumnQuery}
 import scala.collection.JavaConversions._
@@ -403,11 +404,13 @@ trait ColumnFamilyEnhancers {
 
     def foreach(function: Row[K, C] => Boolean)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): AllRowsReader.Builder[K, C] = {
       new AllRowsReader.Builder(keyspace, columnFamily)
+        .withPartitioner(null.asInstanceOf[Partitioner])
         .forEachRow(forEachRowWrapper(function))
     }
 
     def foreachPage(function: Rows[K, C] => Boolean)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace): AllRowsReader.Builder[K, C] = {
       new AllRowsReader.Builder(keyspace, columnFamily)
+        .withPartitioner(null.asInstanceOf[Partitioner])
         .forEachPage(forEachPageWrapper(function))
     }
 
