@@ -1,6 +1,7 @@
 package scalastyanax.formulas
 
 import com.netflix.astyanax.model.{ColumnFamily, Row, Column}
+import com.netflix.astyanax.partitioner.Partitioner
 import scala.annotation.{tailrec, implicitNotFound}
 import com.netflix.astyanax.Keyspace
 import scalastyanax.operations.{ColumnFamilyEnhancers, RowQueryImplicits}
@@ -22,6 +23,7 @@ trait ColumnFamilyFormulas {
 
     def foreachRowKey(function: K => Unit)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]) = {
       new AllRowsReader.Builder(keyspace, columnFamily)
+        .withPartitioner(null.asInstanceOf[Partitioner])
         .withColumnRange(null.asInstanceOf[C], null.asInstanceOf[C], false, 0)
         .forEachRow(new com.google.common.base.Function[Row[K, C], java.lang.Boolean]() {
 
@@ -66,6 +68,7 @@ trait ColumnFamilyFormulas {
 
       new AllRowsReader.Builder(keyspace, columnFamily)
         .withColumnRange(null.asInstanceOf[C], null.asInstanceOf[C], false, pageSize)
+        .withPartitioner(null.asInstanceOf[Partitioner])
         .forEachRow(new com.google.common.base.Function[Row[K, C], java.lang.Boolean]() {
 
         def apply(input: Row[K, C]): lang.Boolean = {
