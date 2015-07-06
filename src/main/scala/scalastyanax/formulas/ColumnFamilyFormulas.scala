@@ -43,24 +43,46 @@ trait ColumnFamilyFormulas {
 
         columns.size match {
           case 0 => true
-          case otherwise => {
+          case otherwise =>
             val from = columns.map(_.getName).lastOption
             function(columns)
-            columnFamily(rowKey -> RangeQuery[C](from, None, Some(pageSize), false)).get match {
+            columnFamily(rowKey -> RangeQuery[C](from, None, Some(pageSize), reverse = false)).get match {
               case Failure(e) => false
-              case Success(result) => {
+              case Success(result) =>
                 _function(result.getResult.drop(1))
-              }
             }
-          }
         }
       }
 
-      columnFamily(rowKey -> RangeQuery[C](None, None, Some(pageSize), false)).get match {
+      columnFamily(rowKey -> RangeQuery[C](None, None, Some(pageSize), reverse = false)).get match {
         case Failure(e) => false
-        case Success(result) => {
+        case Success(result) =>
           _function(result.getResult)
+      }
+    }
+
+    def foldLeftWithPaging[A](zero: A)(rowKey: K, function: (A, Iterable[Column[C]]) => A, pageSize: Int)(implicit @implicitNotFound("Keyspace must be implicitly provided!") keyspace: Keyspace, manifestK: Manifest[K], manifestC: Manifest[C]): A = {
+
+      @tailrec
+      def _iteration(acc: A, columns: Iterable[Column[C]]): A = {
+
+        columns.size match {
+          case 0 => acc
+          case otherwise =>
+            val from = columns.map(_.getName).lastOption
+            val partition = function(acc, columns)
+            columnFamily(rowKey -> RangeQuery[C](from, None, Some(pageSize), reverse = false)).get match {
+              case Failure(e) => throw e
+              case Success(result) =>
+                _iteration(partition, result.getResult.drop(1))
+            }
         }
+      }
+
+      columnFamily(rowKey -> RangeQuery[C](None, None, Some(pageSize), reverse = false)).get match {
+        case Failure(e) => throw e
+        case Success(result) =>
+          _iteration(zero, result.getResult)
       }
     }
 
@@ -85,7 +107,7 @@ trait ColumnFamilyFormulas {
                 val from = columns.map(_.getName).lastOption
                 function(rowKey, columns)
 
-                columnFamily(rowKey -> RangeQuery[C](from, None, Some(pageSize), false)).get match {
+                columnFamily(rowKey -> RangeQuery[C](from, None, Some(pageSize), reverse = false)).get match {
                   case Failure(e) => false
                   case Success(result) => {
                     _function(result.getResult.drop(1))
